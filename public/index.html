@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to Excel Converter</title>
+    <style>
+        #drop-zone {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Upload JSON and get Excel</h1>
+    <div id="drop-zone">Drop your JSON file here</div>
+    <a id="download-link" style="display: none;">Download Excel</a>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const downloadLink = document.getElementById('download-link');
+
+        dropZone.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            dropZone.style.backgroundColor = '#f0f0f0';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.backgroundColor = '#fff';
+        });
+
+        dropZone.addEventListener('drop', (event) => {
+            event.preventDefault();
+            dropZone.style.backgroundColor = '#fff';
+
+            const file = event.dataTransfer.files[0];
+            if (file.type === 'application/json') {
+                const formData = new FormData();
+                formData.append('jsonfile', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    downloadLink.href = url;
+                    downloadLink.style.display = 'block';
+                    downloadLink.innerText = 'Download Excel';
+                })
+                .catch(err => alert('File upload failed'));
+            } else {
+                alert('Please upload a valid JSON file');
+            }
+        });
+    </script>
+</body>
+</html>
