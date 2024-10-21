@@ -3,51 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON to Excel Converter</title>
+    <title>Upload Folder with JSON Files</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #1a73e8;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
         #drop-zone {
             width: 100%;
+            max-width: 600px;
             height: 200px;
-            border: 2px dashed #ccc;
+            border: 3px dashed #1a73e8;
+            border-radius: 10px;
+            background-color: #e8f0fe;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 50px;
             text-align: center;
+            color: #1a73e8;
+            font-size: 1.2rem;
+            transition: background-color 0.3s ease;
+            padding: 5%;
+            margin: 2%;
+        }
+
+        #drop-zone:hover {
+            background-color: #d2e3fc;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        #folder-label {
+            padding: 10px 20px;
+            background-color: #1a73e8;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #folder-label:hover {
+            background-color: #0c5dbc;
+        }
+
+        #download-link {
+            margin-top: 20px;
+            display: block;
+            text-decoration: none;
+            color: white;
+            background-color: #1a73e8;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #download-link:hover {
+            background-color: #0c5dbc;
         }
     </style>
 </head>
 <body>
-    <h1>Upload JSON and get Excel</h1>
-    <div id="drop-zone">Drop your JSON file here</div>
+    <h1>Upload Folder with JSON Files</h1>
+    
+    <label for="folder-input" id="folder-label">Select Folder</label>
+    <input type="file" id="folder-input" webkitdirectory multiple>
+    
+    <div id="drop-zone">Drag & Drop your folder here</div>
+
     <a id="download-link" style="display: none;">Download Excel</a>
 
     <script>
         const dropZone = document.getElementById('drop-zone');
+                                                const folderInput = document.getElementById('folder-input');
         const downloadLink = document.getElementById('download-link');
 
+                                                // Handle file drop in the drop zone
         dropZone.addEventListener('dragover', (event) => {
             event.preventDefault();
-            dropZone.style.backgroundColor = '#f0f0f0';
+            dropZone.style.backgroundColor = '#d2e3fc';
         });
 
         dropZone.addEventListener('dragleave', () => {
-            dropZone.style.backgroundColor = '#fff';
+            dropZone.style.backgroundColor = '#e8f0fe';
         });
 
         dropZone.addEventListener('drop', (event) => {
             event.preventDefault();
-            dropZone.style.backgroundColor = '#fff';
+            dropZone.style.backgroundColor = '#e8f0fe';
 
-            const file = event.dataTransfer.files[0];
-            if (file.type === 'application/json') {
-                const formData = new FormData();
-                formData.append('jsonfile', file);
+            handleFiles(event.dataTransfer.items);
+        });
 
-                fetch('/upload', {
-                    method: 'POST',
-                    body: formData
-                })
+                // Handle folder selection using input element
+                folderInput.addEventListener('change', (event) => {
+                    handleFiles(event.target.files);
+                });
+
+                function handleFiles(files) {
+                    const formData = new FormData();
+                    let hasJSON = false;
+
+                    // Process each file in the folder
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        if (file.type === 'application/json') {
+                            hasJSON = true;
+                            formData.append('jsonfiles', file);
+                        }
+                    }
+
+                    if (!hasJSON) {
+                        alert('Please make sure the folder contains JSON files.');
+                        return;
+                    }
+
+                    fetch('/upload-folder', {
+                        method: 'POST',
+                        body: formData
+                    })
                 .then(response => response.blob())
                 .then(blob => {
                     const url = window.URL.createObjectURL(blob);
@@ -55,11 +144,8 @@
                     downloadLink.style.display = 'block';
                     downloadLink.innerText = 'Download Excel';
                 })
-                .catch(err => alert('File upload failed'));
-            } else {
-                alert('Please upload a valid JSON file');
-            }
-        });
+                        .catch(err => alert('File upload failed.'));
+                }
     </script>
 </body>
 </html>
