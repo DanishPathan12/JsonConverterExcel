@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const xlsx = require('xlsx');
+const status = require("express-status-monitor");
 
 const app = express();
 const port = 3000;
@@ -12,7 +13,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // Serve static frontend files
 app.use(express.static('public'));
-
+app.use(status());
 // Helper function: flatten and extract data from JSON
 function extractData(json) {
     function flattenObject(obj, parentKey = '', result = {}) {
